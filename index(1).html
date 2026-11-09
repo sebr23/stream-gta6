@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kit Stream 100%</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Rajdhani:wght@500;700&family=Yellowtail&display=swap">
+<style>
+/* Layout: une scène fixe (1920x1080 ou 1080x1920 pour le clip) mise à l'échelle ; onglets + réglages flottants ; suffixe -obs = sans UI, fond transparent */
+:root{
+  --night:#0b0618; --pink:#ff3d9a; --peach:#ffb36b; --cyan:#3ee8ff; --violet:#9b2cff; --ink:#fdf4ff; --cash:#7dffa0; --panel:rgba(10,3,30,.8);
+  --display:'Anton', Impact, 'Arial Narrow', sans-serif;
+  --body:'Rajdhani', 'Segoe UI', Arial, sans-serif;
+  --script:'Yellowtail', 'Brush Script MT', cursive;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--night);color:var(--ink);margin:0;overflow:hidden;font-family:var(--body)}
+body.obs, body.obs #wrap{background:transparent}
+#wrap{position:fixed;inset:0;display:grid;place-items:center;background:var(--night)}
+#stage{position:relative;overflow:hidden;flex:none;transform-origin:center;width:1920px;height:1080px}
+#stage.vert{width:1080px;height:1920px}
+#bg,#fx{position:absolute;inset:0;width:100%;height:100%}
+.view{position:absolute;inset:0;display:none}
+.view.on{display:block}
+.dim{position:absolute;inset:0;background:rgba(5,2,12,.55)}
+.hint{position:absolute;inset:0;display:grid;place-items:center;font-weight:700;font-size:44px;letter-spacing:.3em;color:rgba(253,244,255,.25)}
+.card{background:var(--panel);border-left:5px solid var(--pink)}
+.dot{display:inline-block;width:20px;height:20px;border-radius:50%;background:#ff2e4d;box-shadow:0 0 16px #ff2e4d;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.25}}
+.grad{background:linear-gradient(180deg,#fff6d8 0%,var(--peach) 40%,var(--pink) 75%,var(--violet) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 20px rgba(255,61,154,.55)) drop-shadow(6px 6px 0 rgba(20,0,40,.9))}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---- OVERLAY ---- */
+.ov-live{position:absolute;left:40px;top:36px;display:flex;align-items:center;gap:14px;padding:10px 24px;font-weight:700;font-size:34px;letter-spacing:.14em;border-left-color:#ff2e4d}
+.ov-prog{position:absolute;right:40px;top:36px;width:430px;padding:18px 24px 20px;border-left-color:var(--cyan)}
+.ov-prog h4{margin:0;font-weight:700;font-size:24px;letter-spacing:.3em;color:var(--cyan)}
+.ov-pct{font-family:var(--display);font-size:96px;line-height:1;margin-top:4px}
+.ov-bar{height:18px;border-radius:9px;background:rgba(255,255,255,.08);margin-top:10px;overflow:hidden}
+.ov-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--pink),var(--peach));box-shadow:0 0 14px var(--pink);transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.ov-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-top:14px;font-weight:700;font-size:24px}
+.ov-stats span{color:rgba(253,244,255,.65);letter-spacing:.1em;font-size:18px;display:block}
+.ov-stats b{font-size:34px;font-weight:700}
+.ov-stats .cash{color:var(--cash)}
+.ov-bottom{position:absolute;left:40px;bottom:30px;display:flex;align-items:center;gap:20px;padding:10px 26px;font-weight:700;font-size:30px}
+.ov-bottom .chan{font-family:var(--script);font-size:44px;color:var(--peach);font-weight:400}
+.ov-msg{transition:opacity .5s}
+.ov-pop{position:absolute;right:40px;top:400px;padding:14px 26px;font-family:var(--display);font-size:46px;color:var(--peach);border-left-color:var(--cash);opacity:0;transform:translateX(60px)}
+.ov-pop.go{animation:popin 3.2s ease forwards}
+@keyframes popin{10%{opacity:1;transform:none}85%{opacity:1;transform:none}100%{opacity:0;transform:translateX(60px)}}
+
+/* ---- PAUSE ---- */
+.pz{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-bottom:80px}
+.pz .eyebrow{font-weight:700;font-size:36px;letter-spacing:.5em;color:var(--cyan);text-shadow:0 0 14px var(--cyan)}
+.pz .big{font-family:var(--display);font-size:230px;line-height:1;animation:breathe 4s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.04)}}
+.pz .script{font-family:var(--script);font-size:66px;margin-top:-10px;text-shadow:0 0 20px var(--pink)}
+.pz .back{margin-top:26px;font-weight:700;font-size:32px;letter-spacing:.3em;color:var(--peach)}
+.pz .clock{font-family:var(--display);font-size:150px;line-height:1;color:#fff;text-shadow:0 0 20px var(--cyan),0 0 50px var(--cyan)}
+.pz-stats{display:flex;gap:28px;margin-top:34px}
+.pz-stats div{width:250px;padding:14px 0;border:3px solid var(--pink);border-radius:14px;background:var(--panel);box-shadow:0 0 22px rgba(255,61,154,.45)}
+.pz-stats b{display:block;font-family:var(--display);font-size:72px;font-weight:400}
+.pz-stats span{font-weight:700;font-size:22px;letter-spacing:.25em;color:var(--peach)}
+.ticker{position:absolute;left:0;right:0;bottom:0;height:72px;display:flex;align-items:center;overflow:hidden;background:rgba(8,2,22,.9);border-top:3px solid var(--pink)}
+.ticker .tag{flex:none;height:100%;display:grid;place-items:center;padding:0 28px;background:var(--pink);font-family:var(--display);font-size:32px;z-index:1}
+.ticker .track{white-space:nowrap;font-weight:700;font-size:30px;padding-left:40px;animation:scroll 50s linear infinite}
+.ticker .track b{color:var(--cyan);margin:0 20px}
+@keyframes scroll{to{transform:translateX(-50%)}}
+
+/* ---- ALERTE ---- */
+.al{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;opacity:0;pointer-events:none}
+.al.go{animation:alert 5s cubic-bezier(.2,1,.3,1) forwards}
+@keyframes alert{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-6deg)}10%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}16%{transform:translate(-50%,-50%) scale(1)}85%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-60%) scale(.9)}}
+.al .eyebrow{display:inline-block;padding:10px 34px;border-radius:999px;background:linear-gradient(90deg,var(--pink),var(--violet));font-weight:700;font-size:40px;letter-spacing:.25em;box-shadow:0 0 30px rgba(255,61,154,.8)}
+.al .who{font-family:var(--display);font-size:170px;line-height:1.05;margin-top:16px;white-space:nowrap}
+.al .sub{font-weight:700;font-size:46px;margin-top:6px;color:var(--cash);text-shadow:3px 3px 0 #000}
+.al-test{position:absolute;left:50%;bottom:60px;transform:translateX(-50%)}
+
+/* ---- CLIP VERTICAL ---- */
+.cl-top{position:absolute;left:0;right:0;top:90px;text-align:center}
+.cl-day{display:inline-flex;align-items:center;gap:14px;padding:12px 30px;font-weight:700;font-size:40px;letter-spacing:.14em;background:var(--panel);border-radius:999px;border:3px solid var(--pink)}
+.cl-hook{font-family:var(--display);font-size:118px;line-height:1.02;margin:40px 50px 0;text-wrap:balance}
+.cl-vid{position:absolute;left:0;top:640px;width:1080px;height:608px;background:#05020c;border-block:6px solid var(--pink);box-shadow:0 0 40px rgba(255,61,154,.6);overflow:hidden}
+.cl-vid video{width:100%;height:100%;object-fit:cover;display:block}
+.cl-vid label{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-weight:700;font-size:40px;color:rgba(253,244,255,.6);cursor:pointer}
+.cl-vid input{position:absolute;width:1px;height:1px;opacity:0}
+.cl-prog{position:absolute;left:80px;right:80px;top:1320px}
+.cl-prog .row{display:flex;justify-content:space-between;font-weight:700;font-size:40px;letter-spacing:.1em}
+.cl-prog .row b{font-family:var(--display);font-size:64px;font-weight:400;color:var(--peach)}
+.cl-bar{height:34px;border:4px solid var(--pink);border-radius:999px;padding:4px;margin-top:10px}
+.cl-bar i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--cyan),var(--pink),var(--peach))}
+.cl-foot{position:absolute;left:0;right:0;bottom:150px;text-align:center}
+.cl-foot .t{font-weight:700;font-size:44px;letter-spacing:.06em}
+.cl-foot .chan{font-family:var(--script);font-size:110px;color:var(--peach);text-shadow:0 0 24px rgba(255,61,154,.9)}
+
+/* ---- UI (onglets + réglages) ---- */
+.ui{position:fixed;z-index:10;font:600 15px var(--body)}
+body.obs .ui{display:none}
+.tabs{left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top,0px));display:flex;gap:4px;padding:5px;border-radius:12px;background:rgba(11,6,24,.88);border:1px solid rgba(255,61,154,.5);max-width:calc(100vw - 24px);overflow-x:auto}
+.tabs a{color:var(--ink);text-decoration:none;padding:7px 14px;border-radius:8px;white-space:nowrap}
+.tabs a.on{background:var(--pink)}
+.tabs a:focus-visible,.btn:focus-visible,.set input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.gear{right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+.btn{font:inherit;color:var(--ink);background:rgba(11,6,24,.9);border:1px solid var(--pink);border-radius:10px;padding:9px 16px;cursor:pointer}
+.btn.main{background:linear-gradient(90deg,var(--pink),var(--violet));border:0;font-size:22px;padding:14px 30px}
+.set{right:max(12px,env(safe-area-inset-right,0px));bottom:calc(64px + env(safe-area-inset-bottom,0px));width:min(320px,calc(100vw - 24px));max-height:calc(100vh - 140px);overflow:auto;padding:16px;border-radius:14px;background:rgba(11,6,24,.96);border:1px solid var(--pink);display:grid;gap:10px}
+.set h3{margin:0;font-size:18px;letter-spacing:.1em;color:var(--peach)}
+.set label{display:grid;gap:4px;font-size:13px;letter-spacing:.06em;color:rgba(253,244,255,.75)}
+.set input{font:600 16px var(--body);color:var(--ink);background:#1a0d33;border:1px solid rgba(62,232,255,.4);border-radius:8px;padding:7px 9px;min-width:0}
+.set .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.set .quick{display:flex;gap:6px;flex-wrap:wrap}
+.set .quick .btn{padding:6px 10px;font-size:14px}
+.set p{margin:0;font-size:13px;color:rgba(253,244,255,.6);line-height:1.35}
+.set code{color:var(--cyan)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important}}
+</style>
+</head>
+<body>
+
+
+<div id="wrap"><div id="stage">
+  <canvas id="bg" width="1920" height="1080"></canvas>
+
+  <!-- OVERLAY -->
+  <section class="view" id="v-overlay">
+    <div class="dim prev"></div><div class="hint prev">ICI : LA PARTIE EN DIRECT</div>
+    <div class="ov-live card"><span class="dot"></span><span>LIVE · JOUR <b class="num" data-k="jour">1</b></span></div>
+    <div class="ov-prog card">
+      <h4>GTA 6 À 100 %</h4>
+      <div class="ov-pct grad num" data-k="pct">0 %</div>
+      <div class="ov-bar"><i data-k="bar"></i></div>
+      <div class="ov-stats">
+        <div><span>DÉFIS FAITS</span><b class="num" data-k="defis">0</b></div>
+        <div><span>LIVE DEPUIS</span><b class="num" data-k="since">00:00:00</b></div>
+      </div>
+    </div>
+    <div class="ov-pop card" id="ovpop">DÉFI RÉUSSI ✔</div>
+    <div class="ov-bottom card"><span class="chan" data-k="chan">TaChaine_TV</span><span class="ov-msg" id="ovmsg">💜 Follow pour suivre le 100 %</span></div>
+  </section>
+
+  <!-- PAUSE -->
+  <section class="view" id="v-pause">
+    <div class="pz">
+      <div class="eyebrow">LE LIVE CONTINUE</div>
+      <div class="big grad">PAUSE</div>
+      <div class="script">Le joueur recharge ses batteries 😴</div>
+      <div class="back">REPRISE DANS</div>
+      <div class="clock num" id="pzclock">00:00:00</div>
+      <div class="pz-stats">
+        <div><b class="num" data-k="jour">1</b><span>JOUR</span></div>
+        <div><b class="num" data-k="pct">0 %</b><span>PROGRESSION</span></div>
+        <div><b class="num" data-k="defis">0</b><span>DÉFIS</span></div>
+      </div>
+    </div>
+    <div class="ticker"><div class="tag">INFOS</div><div class="track" id="pztrack"></div></div>
+  </section>
+
+  <!-- ALERTE -->
+  <section class="view" id="v-alerte">
+    <div class="dim prev"></div><div class="hint prev">ICI : LA PARTIE EN DIRECT</div>
+    <div class="al" id="al">
+      <div class="eyebrow">NOUVEAU FOLLOW</div>
+      <div class="who grad" id="alwho">Pseudo</div>
+      <div class="sub">+1 dans l'équipe du 100 % 💜</div>
+    </div>
+  </section>
+
+  <!-- CLIP VERTICAL -->
+  <section class="view" id="v-clip">
+    <div class="cl-top">
+      <div class="cl-day"><span class="dot"></span>GTA 6 · JOUR <b class="num" data-k="jour">1</b></div>
+      <div class="cl-hook grad" data-k="hook">40 ESSAIS POUR CE DÉFI 😭</div>
+    </div>
+    <div class="cl-vid">
+      <video id="clvid" muted loop playsinline hidden></video>
+      <label for="clfile" id="cllab">🎮 Touche ici pour mettre ton clip<br>(format paysage 16:9)</label>
+      <input type="file" id="clfile" accept="video/*">
+    </div>
+    <div class="cl-prog">
+      <div class="row"><span>PROGRESSION 100 %</span><b class="num" data-k="pct">0 %</b></div>
+      <div class="cl-bar"><i data-k="bar"></i></div>
+    </div>
+    <div class="cl-foot">
+      <div class="t">Suis le défi en live sur Twitch 👇</div>
+      <div class="chan" data-k="chan">TaChaine_TV</div>
+    </div>
+  </section>
+
+  <canvas id="fx" width="1920" height="1080"></canvas>
+</div></div>
+
+<!-- UI -->
+<nav class="ui tabs" id="tabs">
+  <a href="#overlay">Overlay progression</a>
+  <a href="#pause">Écran pause</a>
+  <a href="#alerte">Alerte follow</a>
+  <a href="#clip">Clip TikTok</a>
+</nav>
+<button class="ui btn gear" id="gearbtn" type="button" aria-expanded="false">⚙ Réglages</button>
+<form class="ui set" id="set" hidden>
+  <h3>RÉGLAGES DU LIVE</h3>
+  <label for="s-chan">Nom de la chaîne<input id="s-chan" type="text" maxlength="25"></label>
+  <div class="row2">
+    <label for="s-pct">Progression %<input id="s-pct" type="number" min="0" max="100" step="0.1"></label>
+    <label for="s-defis">Défis faits<input id="s-defis" type="number" min="0" step="1"></label>
+  </div>
+  <div class="quick">
+    <button class="btn" type="button" id="q-defi">+1 défi ✔</button>
+    <button class="btn" type="button" id="q-pct">+1 %</button>
+  </div>
+  <label for="s-start">Début du tout premier live<input id="s-start" type="datetime-local"></label>
+  <label for="s-pause">Pause : reprise dans (heures)<input id="s-pause" type="number" min="0" max="24" step="0.25"></label>
+  <label for="s-hook">Phrase choc du clip<input id="s-hook" type="text" maxlength="40"></label>
+  <p>Dans OBS, ajoute <code>-obs</code> à la fin du lien (ex. <code>#overlay-obs</code>) : plus d'onglets, fond transparent.</p>
+</form>
+
+<script>
+// ---------- État partagé
+const KEY='kit100';
+const def={chan:'TaChaine_TV',pct:0,defis:0,start:Date.now(),pauseEnd:Date.now()+6*36e5,hook:'40 ESSAIS POUR CE DÉFI 😭'};
+let st=load();
+function load(){try{return Object.assign({},def,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return {...def}}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+addEventListener('storage',e=>{if(e.key===KEY){const old=st.defis;st=load();if(st.defis>old)celebrate();render();fillForm()}});
+
+const $=id=>document.getElementById(id);
+const fmt=ms=>{ms=Math.max(0,ms);const s=Math.floor(ms/1000);return [Math.floor(s/3600),Math.floor(s/60)%60,s%60].map(n=>String(n).padStart(2,'0')).join(':')};
+function render(){
+  const jour=Math.max(1,Math.floor((Date.now()-st.start)/864e5)+1);
+  const pct=(Math.round(st.pct*10)/10).toString().replace('.',',')+' %';
+  document.querySelectorAll('[data-k]').forEach(el=>{const k=el.dataset.k;
+    if(k==='jour')el.textContent=jour;else if(k==='pct')el.textContent=pct;else if(k==='defis')el.textContent=st.defis;
+    else if(k==='chan')el.textContent=st.chan;else if(k==='hook')el.textContent=st.hook;else if(k==='bar')el.style.width=Math.min(100,st.pct)+'%'})}
+function tick(){$('pzclock').textContent=fmt(st.pauseEnd-Date.now());document.querySelectorAll('[data-k=since]').forEach(e=>e.textContent=fmt(Date.now()-st.start));
+  const j=Math.max(1,Math.floor((Date.now()-st.start)/864e5)+1);document.querySelectorAll('[data-k=jour]').forEach(e=>e.textContent=j)}
+setInterval(tick,500);
+
+// ---------- Réglages
+const pad=n=>String(n).padStart(2,'0');
+const toLocal=ts=>{const d=new Date(ts);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`};
+function fillForm(){$('s-chan').value=st.chan;$('s-pct').value=st.pct;$('s-defis').value=st.defis;$('s-start').value=toLocal(st.start);
+  $('s-pause').value=Math.max(0,Math.round((st.pauseEnd-Date.now())/36e4)/10);$('s-hook').value=st.hook}
+fillForm();
+$('set').addEventListener('submit',e=>e.preventDefault());
+$('set').addEventListener('input',e=>{const t=e.target;
+  if(t.id==='s-chan')st.chan=t.value||'TaChaine_TV';
+  if(t.id==='s-pct')st.pct=Math.min(100,Math.max(0,+t.value||0));
+  if(t.id==='s-defis'){const v=Math.max(0,parseInt(t.value)||0);if(v>st.defis)celebrate();st.defis=v}
+  if(t.id==='s-start'&&t.value)st.start=new Date(t.value).getTime();
+  if(t.id==='s-pause')st.pauseEnd=Date.now()+(+t.value||0)*36e5;
+  if(t.id==='s-hook')st.hook=t.value||' ';
+  save();render()});
+$('q-defi').onclick=()=>{st.defis++;save();render();fillForm();celebrate()};
+$('q-pct').onclick=()=>{st.pct=Math.min(100,Math.round((st.pct+1)*10)/10);save();render();fillForm();boom(1700,200,60,['#3ee8ff','#fff'])};
+$('gearbtn').onclick=()=>{const s=$('set');s.hidden=!s.hidden;$('gearbtn').setAttribute('aria-expanded',!s.hidden)};
+
+// ---------- Messages overlay + ticker pause
+const msgs=['💜 Follow pour suivre le 100 %','🗳️ Le chat décide du prochain défi','🎯 Tape !defi pour proposer un défi','🔔 Active les notifs : on ne coupe jamais'];
+let mi=0;setInterval(()=>{const m=$('ovmsg');m.style.opacity=0;setTimeout(()=>{mi=(mi+1)%msgs.length;m.textContent=msgs[mi];m.style.opacity=1},500)},7000);
+const infos=['Le live ne s\'arrête pas tant que le jeu n\'est pas fini à 100 %','Chaque défi, même le plus petit, est fait en direct','Follow + notifs pour ne rien rater de la reprise','Les meilleurs moments sont sur TikTok','Propose ton défi dans le chat avec !defi'];
+$('pztrack').innerHTML=(infos.map(i=>'<b>★</b>'+i).join('')).repeat(2);
+
+// ---------- Alerte
+const names=['Kevin_du_13','xX_Lucas_Xx','NeonRider','SpeedyLeo','Mila.gg','TonyMontagne','VibesOnly','Nico_Turbo'];
+let ni=0;
+function alertGo(name){const a=$('al');$('alwho').textContent=name;a.classList.remove('go');void a.offsetWidth;a.classList.add('go');
+  setTimeout(()=>{boom(960,540,260);boom(560,460,90);boom(1360,460,90)},300);setTimeout(()=>boom(960,700,120,['#7dffa0','#fff']),1100)}
+
+// ---------- Particules
+const fx=$('fx'),fc=fx.getContext('2d');let parts=[];
+function boom(x,y,n=160,pal=['#fff6d8','#ffb36b','#ff3d9a','#ff7a2e','#3ee8ff']){
+  for(let i=0;i<n;i++){const a=Math.random()*6.283,v=3+Math.random()*18;parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,dec:.01+Math.random()*.018,r:2+Math.random()*6,c:pal[i%pal.length]})}
+  parts.push({ring:1,x,y,R:20,life:1})}
+function celebrate(){$('ovpop').classList.remove('go');void $('ovpop').offsetWidth;$('ovpop').classList.add('go');boom(1650,440,140);boom(1650,200,80,['#7dffa0','#fff'])}
+function drawFx(){fc.clearRect(0,0,fx.width,fx.height);fc.globalCompositeOperation='lighter';
+  parts=parts.filter(p=>{if(p.ring){p.R+=30;p.life-=.05;fc.strokeStyle=`rgba(255,180,107,${Math.max(0,p.life)})`;fc.lineWidth=12*p.life;fc.beginPath();fc.arc(p.x,p.y,p.R,0,7);fc.stroke();return p.life>0}
+    p.x+=p.vx;p.y+=p.vy;p.vy+=.22;p.vx*=.97;p.life-=p.dec;fc.globalAlpha=Math.max(0,p.life);fc.fillStyle=p.c;fc.beginPath();fc.arc(p.x,p.y,p.r*p.life,0,7);fc.fill();fc.globalAlpha=1;return p.life>0});
+  fc.globalCompositeOperation='source-over'}
+
+// ---------- Décor néon
+const bg=$('bg'),cx=bg.getContext('2d');let scene=null;
+function buildScene(W,H){let seed=11;const r=()=>(seed=(seed*16807)%2147483647)/2147483647;const HZ=Math.round(H*.6);
+  const b=[];for(let x=0;x<W;){const w=40+r()*90;b.push({x,w,h:60+r()*H*.2});x+=w+4}
+  const w=[];b.forEach(o=>{for(let i=0;i<12;i++)w.push({x:o.x+6+r()*(o.w-14),y:HZ-8-r()*(o.h-14),p:r()*9})});
+  return {W,H,HZ,b,w,s:Array.from({length:120},()=>({x:r()*W,y:r()*HZ*.6,r:r()*1.6+.3,p:r()*6}))}}
+function palm(x,base,s,t){cx.save();cx.translate(x,base);cx.scale(s,s);cx.fillStyle='#120321';cx.strokeStyle='#120321';cx.lineWidth=16;
+  cx.beginPath();cx.moveTo(0,0);cx.quadraticCurveTo(30,-160,10,-330);cx.stroke();const sw=Math.sin(t/1100+x)*.08;
+  for(let i=0;i<7;i++){cx.save();cx.translate(10,-330);cx.rotate(-Math.PI/2+(i-3)*.5+sw);cx.beginPath();cx.moveTo(0,0);cx.quadraticCurveTo(70,-30,150,40);cx.quadraticCurveTo(70,-5,0,8);cx.fill();cx.restore()}cx.restore()}
+function drawBg(t){const {W,H,HZ}=scene;
+  const sky=cx.createLinearGradient(0,0,0,HZ);sky.addColorStop(0,'#0b0618');sky.addColorStop(.45,'#3a0d52');sky.addColorStop(.8,'#c2306d');sky.addColorStop(1,'#ff9a5c');cx.fillStyle=sky;cx.fillRect(0,0,W,HZ);
+  scene.s.forEach(s=>{cx.globalAlpha=.4+.6*Math.abs(Math.sin(t/900+s.p));cx.fillStyle='#fff';cx.beginPath();cx.arc(s.x,s.y,s.r,0,7);cx.fill()});cx.globalAlpha=1;
+  const R=Math.min(W,H)*.28,sx=W/2,sy=HZ-30;cx.save();cx.beginPath();cx.arc(sx,sy,R,Math.PI,0);cx.clip();const g=cx.createLinearGradient(0,sy-R,0,sy);g.addColorStop(0,'#ffe27a');g.addColorStop(1,'#ff3d9a');cx.fillStyle=g;cx.fillRect(sx-R,sy-R,R*2,R);
+  cx.fillStyle='#c2306d';const o=(t/60)%24;for(let i=0;i<9;i++)cx.fillRect(sx-R,sy-R*.55+i*24+o,R*2,3+i*1.6);cx.restore();
+  scene.b.forEach(o=>{cx.fillStyle='#1a0730';cx.fillRect(o.x,HZ-o.h,o.w,o.h)});
+  scene.w.forEach(o=>{if(Math.sin(t/1600+o.p)>-.3){cx.fillStyle='rgba(255,200,120,.75)';cx.fillRect(o.x,o.y,4,6)}});
+  const gg=cx.createLinearGradient(0,HZ,0,H);gg.addColorStop(0,'#1d0636');gg.addColorStop(1,'#07020f');cx.fillStyle=gg;cx.fillRect(0,HZ,W,H-HZ);
+  cx.strokeStyle='rgba(62,232,255,.55)';cx.lineWidth=2;cx.shadowColor='#3ee8ff';cx.shadowBlur=10;
+  for(let i=-24;i<=24;i++){cx.beginPath();cx.moveTo(W/2+i*20,HZ);cx.lineTo(W/2+i*260,H);cx.stroke()}
+  const sp=(t/900)%1;for(let i=0;i<14;i++){const z=(i+sp)/14;cx.globalAlpha=Math.min(1,z*2);const y=HZ+(H-HZ)*z*z;cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke()}
+  cx.globalAlpha=1;cx.shadowBlur=0;
+  palm(W*.06,HZ+40,1.1,t);palm(W*.17,HZ+70,.75,t+500);palm(W*.84,HZ+60,.95,t+900);palm(W*.95,HZ+30,1.25,t+300)}
+
+// ---------- Routage
+let view='overlay',obs=false,alertTimer=null;
+function route(){
+  let h=(location.hash||'#overlay').slice(1);obs=h.endsWith('-obs');h=h.replace(/-obs$/,'');
+  if(!['overlay','pause','alerte','clip'].includes(h))h='overlay';view=h;
+  document.body.classList.toggle('obs',obs);
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+h));
+  document.querySelectorAll('#tabs a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+h));
+  const vert=h==='clip';$('stage').classList.toggle('vert',vert);
+  const W=vert?1080:1920,H=vert?1920:1080;[bg,fx].forEach(c=>{c.width=W;c.height=H});scene=buildScene(W,H);
+  const transparent=obs&&(h==='overlay'||h==='alerte');bg.style.display=transparent?'none':'block';
+  document.querySelectorAll('.prev').forEach(p=>p.style.display=obs?'none':'');
+  clearInterval(alertTimer);if(h==='alerte'){const go=()=>alertGo(names[ni++%names.length]);setTimeout(go,400);alertTimer=setInterval(go,7000)}
+  fit();
+}
+addEventListener('hashchange',route);
+function fit(){const vert=view==='clip';const s=Math.min(innerWidth/(vert?1080:1920),innerHeight/(vert?1920:1080));$('stage').style.transform=`scale(${s})`}
+addEventListener('resize',fit);
+
+// ---------- Clip vidéo perso
+$('clfile').addEventListener('change',()=>{const f=$('clfile').files[0];if(!f)return;const v=$('clvid');v.src=URL.createObjectURL(f);v.hidden=false;v.play().catch(()=>{});$('cllab').style.opacity=0});
+
+// ---------- Boucle
+function loop(t){if(bg.style.display!=='none')drawBg(t);drawFx();requestAnimationFrame(loop)}
+route();render();tick();requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>
